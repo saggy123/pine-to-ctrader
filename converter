@@ -1,0 +1,109 @@
+using cAlgo.API;
+using cAlgo.API.Indicators;
+
+namespace cAlgo
+{
+    [Indicator(IsOverlay = true, TimeZone = TimeZones.UTC, AccessRights = AccessRights.None)]
+    public class RobHoffmanOverlaySet : Indicator
+    {
+        [Parameter("Fast Speed Line", DefaultValue = 3)]
+        public int FastSpeedLinePeriods { get; set; }
+
+        [Parameter("Slow Speed Line", DefaultValue = 5)]
+        public int SlowSpeedLinePeriods { get; set; }
+
+        [Parameter("Fast Primary Trend Line", DefaultValue = 18)]
+        public int FastPrimaryTrendLinePeriods { get; set; }
+
+        [Parameter("Slow Primary Trend Line", DefaultValue = 20)]
+        public int SlowPrimaryTrendLinePeriods { get; set; }
+
+        [Parameter("Trend Line - 1", DefaultValue = 50)]
+        public int TrendLine1Periods { get; set; }
+
+        [Parameter("Trend Line - 2", DefaultValue = 89)]
+        public int TrendLine2Periods { get; set; }
+
+        [Parameter("Trend Line - 3", DefaultValue = 144)]
+        public int TrendLine3Periods { get; set; }
+
+        [Parameter("Trend Line - 4", DefaultValue = 200)]
+        public int TrendLine4Periods { get; set; }
+
+        [Parameter("No Trend Zone - Midline", DefaultValue = 35)]
+        public int NoTrendZoneMidlinePeriods { get; set; }
+
+        [Output("Fast Speed Line", Color = Colors.Blue, LineWidth = 2)]
+        public IndicatorDataSeries FastSpeedLine { get; set; }
+
+        [Output("Slow Speed Line", Color = Colors.Fuchsia, LineWidth = 2)]
+        public IndicatorDataSeries SlowSpeedLine { get; set; }
+
+        [Output("Fast Primary Trend Line", Color = Colors.Green, LineWidth = 3)]
+        public IndicatorDataSeries FastPrimaryTrendLine { get; set; }
+
+        [Output("Slow Primary Trend Line", Color = Colors.Black, LineWidth = 3)]
+        public IndicatorDataSeries SlowPrimaryTrendLine { get; set; }
+
+        [Output("Trend Line - 1", Color = Colors.Blue, LineWidth = 3)]
+        public IndicatorDataSeries TrendLine1 { get; set; }
+
+        [Output("Trend Line - 2", Color = Colors.LightSeaGreen, LineWidth = 3)]
+        public IndicatorDataSeries TrendLine2 { get; set; }
+
+        [Output("Trend Line - 3", Color = Colors.OrangeRed, LineWidth = 3)]
+        public IndicatorDataSeries TrendLine3 { get; set; }
+
+        [Output("Trend Line - 4", Color = Colors.Fuchsia, LineWidth = 3)]
+        public IndicatorDataSeries TrendLine4 { get; set; }
+
+        [Output("No Trend Zone - Midline", Color = Colors.MediumSeaGreen, LineWidth = 2)]
+        public IndicatorDataSeries NoTrendZoneMidline { get; set; }
+
+        [Output("No Trend Zone - Upperline", Color = Colors.MediumSeaGreen, LineWidth = 2)]
+        public IndicatorDataSeries NoTrendZoneUpperline { get; set; }
+
+        [Output("No Trend Zone - Lowerline", Color = Colors.MediumSeaGreen, LineWidth = 2)]
+        public IndicatorDataSeries NoTrendZoneLowerline { get; set; }
+
+        private SimpleMovingAverage fastSpeedLine;
+        private SimpleMovingAverage slowSpeedLine;
+        private ExponentialMovingAverage fastPrimaryTrendLine;
+        private ExponentialMovingAverage slowPrimaryTrendLine;
+        private SimpleMovingAverage trendLine1;
+        private SimpleMovingAverage trendLine2;
+        private ExponentialMovingAverage trendLine3;
+        private SimpleMovingAverage trendLine4;
+        private ExponentialMovingAverage noTrendZoneMidline;
+        private IndicatorDataSeries rma;
+
+        protected override void Initialize()
+        {
+            fastSpeedLine = Indicators.SimpleMovingAverage(MarketSeries.Close, FastSpeedLinePeriods);
+            slowSpeedLine = Indicators.SimpleMovingAverage(MarketSeries.Close, SlowSpeedLinePeriods);
+            fastPrimaryTrendLine = Indicators.ExponentialMovingAverage(MarketSeries.Close, FastPrimaryTrendLinePeriods);
+            slowPrimaryTrendLine = Indicators.ExponentialMovingAverage(MarketSeries.Close, SlowPrimaryTrendLinePeriods);
+            trendLine1 = Indicators.SimpleMovingAverage(MarketSeries.Close, TrendLine1Periods);
+            trendLine2 = Indicators.SimpleMovingAverage(MarketSeries.Close, TrendLine2Periods);
+            trendLine3 = Indicators.ExponentialMovingAverage(MarketSeries.Close, TrendLine3Periods);
+            trendLine4 = Indicators.SimpleMovingAverage(MarketSeries.Close, TrendLine4Periods);
+            noTrendZoneMidline = Indicators.ExponentialMovingAverage(MarketSeries.Close, NoTrendZoneMidlinePeriods);
+            rma = Indicators.Rma(MarketSeries.Typical, NoTrendZoneMidlinePeriods);
+        }
+
+        public override void Calculate(int index)
+        {
+            FastSpeedLine[index] = fastSpeedLine.Result[index];
+            SlowSpeedLine[index] = slowSpeedLine.Result[index];
+            FastPrimaryTrendLine[index] = fastPrimaryTrendLine.Result[index];
+            SlowPrimaryTrendLine[index] = slowPrimaryTrendLine.Result[index];
+            TrendLine1[index] = trendLine1.Result[index];
+            TrendLine2[index] = trendLine2.Result[index];
+            TrendLine3[index] = trendLine3.Result[index];
+            TrendLine4[index] = trendLine4.Result[index];
+            NoTrendZoneMidline[index] = noTrendZoneMidline.Result[index];
+            NoTrendZoneUpperline[index] = noTrendZoneMidline.Result[index] + rma.Result[index] * 0.5;
+            NoTrendZoneLowerline[index] = noTrendZoneMidline.Result[index] - rma.Result[index] * 0.5;
+        }
+    }
+}
